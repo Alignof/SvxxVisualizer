@@ -1,7 +1,18 @@
 mod mmu;
 
+/// Target isa.
+#[derive(Copy, Clone)]
+pub enum Isa {
+    /// 32 bit architecture.
+    Rv32,
+    /// 64 bit architecture.
+    Rv64,
+}
+
 /// Type of Virtual-Memory Systems.
 pub enum AddrTransMode {
+    /// No address transration
+    Bare,
     /// Page-Based 32-bit Virtual-Memory Systems
     Sv32,
     /// Page-Based 39-bit Virtual-Memory Systems
@@ -38,6 +49,31 @@ pub enum TransFor {
     Deleg,
 }
 
+/// Cause of trap
+#[derive(Copy, Clone, Debug)]
+#[allow(clippy::enum_clike_unportable_variant)]
+pub enum TrapCause {
+    InstAddrMisaligned = 0,
+    InstAccessFault = 1,
+    IllegalInst = 2,
+    Breakpoint = 3,
+    LoadAddrMisaligned = 4,
+    LoadAccessFault = 5,
+    StoreAMOAddrMisaligned = 6,
+    StoreAMOAccessFault = 7,
+    UmodeEcall = 8,
+    SmodeEcall = 9,
+    MmodeEcall = 11,
+    InstPageFault = 12,
+    LoadPageFault = 13,
+    StoreAMOPageFault = 15,
+    SupervisorSoftwareInterrupt = (1 << 31) + 1,
+    MachineSoftwareInterrupt = (1 << 31) + 3,
+    SupervisorTimerInterrupt = (1 << 31) + 5,
+    MachineTimerInterrupt = (1 << 31) + 7,
+    SupervisorExternalInterrupt = (1 << 31) + 9,
+    MachineExternalInterrupt = (1 << 31) + 11,
+}
 fn main() {
     println!("Hello, world!");
 }
