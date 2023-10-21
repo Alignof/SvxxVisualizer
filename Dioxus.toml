@@ -1,0 +1,28 @@
+[application]
+# App name
+name = "SvxxVisualizer"
+# The Dioxus platform to default to
+default_platform = "web"
+# `build` & `serve` output path
+out_dir = "dist"
+# The static resource path
+asset_dir = "public"
+
+[web.app]
+# HTML title tag content
+title = "RISC-V address translation visualizer. "
+
+[web.watcher]
+# When watcher is triggered, regenerate the `index.html`
+reload_html = true
+# Which files or dirs will be monitored
+watch_path = ["src", "public"]
+
+# Include style or script assets
+[web.resource]
+# CSS style file
+style = ["./assets/style.css"]
+
+[web.resource.dev]
+# CSS style file
+style = ["./assets/style.css"]
