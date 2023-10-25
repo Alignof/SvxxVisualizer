@@ -22,11 +22,13 @@ fn visualizer(cx: Scope) -> Element {
                 onsubmit: |_| {},
                 input {
                     class: "bg-gray-900",
-                    oninput: move |event| {
-                        match event.value.parse::<u64>() {
-                            Ok(va) => vaddr.set(va),
-                            Err(_e) => (),
+                    oninput: move |event|
+                    if let Some(hex_noprefix) = event.value.strip_prefix("0x") {
+                        if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
+                            vaddr.set(hex);
                         }
+                    } else if let Ok(dec) = event.value.parse::<u64>() {
+                        vaddr.set(dec);
                     }
                 }
             }
