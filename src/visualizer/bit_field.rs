@@ -67,9 +67,49 @@ pub fn vaddr<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
 
     cx.render(rsx! {
         div {
-            class: "mx-auto p-8 flex justify-center",
+            class: "flex justify-start",
             for bf in boxes {
                 bf
+            }
+        }
+        div {
+            class: "py-1 flex text-xl text-yellow-600 font-mono",
+            div {
+                "vpn[2]:"
+            }
+            div {
+                class: "pl-2 text-white",
+                format!("{:#03x}", vaddr.get() >> 30 & 0x1ff)
+            }
+        }
+        div {
+            class: "py-1 flex text-xl text-blue-300 font-mono",
+            div {
+                "vpn[1]:"
+            }
+            div {
+                class: "pl-2 text-white",
+                format!("{:#03x}", vaddr.get() >> 21 & 0x1ff)
+            }
+        }
+        div {
+            class: "py-1 flex text-xl text-green-600 font-mono",
+            div {
+                "vpn[0]:"
+            }
+            div {
+                class: "pl-2 text-white",
+                format!("{:#03x}", vaddr.get() >> 12 & 0x1ff)
+            }
+        }
+        div {
+            class: "py-1 flex text-xl text-red-600 font-mono",
+            div {
+                "page offset:"
+            }
+            div {
+                class: "pl-2 text-white",
+                format!("{:#03x}", vaddr.get() & 0xfff)
             }
         }
     })
