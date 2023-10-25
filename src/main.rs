@@ -1,4 +1,6 @@
 #![allow(non_snake_case)]
+mod bit_field;
+
 use dioxus::prelude::*;
 
 fn main() {
@@ -7,7 +9,7 @@ fn main() {
 }
 
 fn visualizer(cx: Scope) -> Element {
-    let name = use_state(cx, || "".to_string());
+    let vaddr = use_state(cx, || 0);
     cx.render(rsx! {
         div {
             class: "flex space-x-3",
@@ -19,10 +21,10 @@ fn visualizer(cx: Scope) -> Element {
             form {
                 onsubmit: |_| {},
                 input {
-                    value: 0,
+                    class: "bg-gray-900",
                     oninput: move |event| {
                         match event.value.parse::<u64>() {
-                            Ok(v) => name.set(format!("{v:032b}")),
+                            Ok(va) => vaddr.set(va),
                             Err(_e) => (),
                         }
                     }
@@ -30,30 +32,29 @@ fn visualizer(cx: Scope) -> Element {
             }
         }
 
-        div {
-            class: "mx-auto p-8 flex justify-center",
-            "{name}"
-        }
+        bit_field::vaddr(cx, vaddr)
     })
 }
 
 // create a component that renders a div with the text "Hello, world!"
 fn app(cx: Scope) -> Element {
     cx.render(rsx! {
-        main {
-            class: "flex-grow bg-gray-300",
-            div {
-                class: "mx-auto p-8 text-3xl flex justify-center",
-                "RISC-V address translation visualizer"
+        div {
+            class: "flex flex-col min-h-screen bg-gray-700 text-white",
+            main {
+                div {
+                    class: "p-8 text-3xl flex justify-center",
+                    "RISC-V address translation visualizer"
+                }
+
+                visualizer(cx)
             }
 
-            visualizer(cx)
-        }
-
-        footer {
-            class: "info text-white bg-blue-900 text-center",
-            p { "Copyright 2023 n.takana All rights reserved."}
-            p { "github: ", a { href: "https://github.com/Alignof/SvxxVisualizer", "https://github.com/Alignof/SvxxVisualizer" }}
+            footer {
+                class: "info text-white bg-blue-900 text-center mt-auto",
+                p { "Copyright 2023 n.takana All rights reserved."}
+                p { "github: ", a { href: "https://github.com/Alignof/SvxxVisualizer", "https://github.com/Alignof/SvxxVisualizer" }}
+            }
         }
     })
 }
