@@ -46,7 +46,7 @@ fn app(cx: Scope) -> Element {
             main {
                 div {
                     class: "p-8 text-3xl flex justify-center",
-                    "RISC-V address translation visualizer"
+                    "RISC-V Address Translation Visualizer"
                 }
 
                 visualizer(cx)
