@@ -25,16 +25,16 @@ fn bit_box<'a>(cx: Scope<'a>, bit: u8, color_map: &[VaddrField]) -> Element<'a> 
         div {
             class: "flex flex-col items-center",
             div {
-                class: "p-2 text-xl border-2 bg-slate-600 font-mono",
+                class: "p-2 text-xl border-2 bg-slate-500 font-mono",
                 div {
                     for i in 0..4 {
                         span {
                             class: match color_map[i] {
-                                Poff => "text-red-600",
-                                Vpn0 => "text-green-600",
+                                Poff => "text-red-500",
+                                Vpn0 => "text-green-500",
                                 Vpn1 => "text-blue-300",
-                                Vpn2 => "text-yellow-600",
-                                Resv => "text-white-600",
+                                Vpn2 => "text-yellow-500",
+                                Resv => "text-white-500",
                             },
                             format!("{:01b}", bit >> (3 - i) & 1),
                         }
@@ -73,7 +73,7 @@ pub fn vaddr<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
             }
         }
         div {
-            class: "py-1 flex text-xl text-yellow-600 font-mono",
+            class: "py-1 flex text-xl text-yellow-500 font-mono",
             div {
                 "vpn[2]:"
             }
@@ -93,7 +93,7 @@ pub fn vaddr<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
             }
         }
         div {
-            class: "py-1 flex text-xl text-green-600 font-mono",
+            class: "py-1 flex text-xl text-green-500 font-mono",
             div {
                 "vpn[0]:"
             }
@@ -103,7 +103,7 @@ pub fn vaddr<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
             }
         }
         div {
-            class: "py-1 flex text-xl text-red-600 font-mono",
+            class: "py-1 flex text-xl text-red-500 font-mono",
             div {
                 "page offset:"
             }
