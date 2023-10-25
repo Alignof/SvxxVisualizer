@@ -12,7 +12,7 @@ fn visualizer(cx: Scope) -> Element {
     let vaddr = use_state(cx, || 0);
     cx.render(rsx! {
         div {
-            class: "flex space-x-3",
+            class: "flex space-x-3 p-2",
             p {
                 class: "float-left",
                 "vaddr:"
