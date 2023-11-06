@@ -25,7 +25,7 @@ fn bit_box<'a>(cx: Scope<'a>, bit: u8, color_map: &[VaddrField]) -> Element<'a> 
         div {
             class: "flex flex-col items-center",
             div {
-                class: "p-2 text-xl border-2 bg-slate-500 font-mono",
+                class: "p-2 text-xl border-2 bg-slate-600 font-mono",
                 div {
                     for i in 0..4 {
                         span {
