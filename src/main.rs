@@ -1,5 +1,7 @@
+mod config;
 mod visualizer;
 
+use config::Config;
 use dioxus::prelude::*;
 
 fn main() {
@@ -9,6 +11,7 @@ fn main() {
 
 // create a component that renders a div with the text "Hello, world!"
 fn app(cx: Scope) -> Element {
+    use_shared_state_provider(cx, || Config::new());
     cx.render(rsx! {
         div {
             class: "flex flex-col min-h-screen bg-gray-700 text-white",
@@ -17,6 +20,8 @@ fn app(cx: Scope) -> Element {
                     class: "p-8 text-3xl flex justify-center",
                     "RISC-V Address Translation Visualizer"
                 }
+
+                config::config(cx)
 
                 visualizer::visualizer(cx)
             }
