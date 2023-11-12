@@ -1,13 +1,15 @@
 use crate::config::Config;
 use dioxus::prelude::*;
 
-mod bit_field;
+mod pte;
+mod vaddr;
 
 pub fn visualizer(cx: Scope) -> Element {
     let conf = use_shared_state::<Config>(cx).unwrap();
     let vaddr = use_state(cx, || 0);
     let vpn_2 = use_state(cx, || 0);
     let pte_addr = use_state(cx, || 0);
+    let pte = use_state(cx, || 0);
     cx.render(rsx! {
         div {
             class: "mx-auto p-8 flex flex-col justify-start",
@@ -44,18 +46,8 @@ pub fn visualizer(cx: Scope) -> Element {
 
         div {
             class: "mx-auto px-8 flex flex-col justify-start",
-            div {
-                p {
-                    class: "float-left text-xl",
-                    format!(
-                        "pte addr = {:#x} × {:#x} + {:#x} × {:#x}",
-                        conf.read().satp_ppn,
-                        4096,
-                        vpn_2.get(),
-                        8
-                    )
-                }
-            }
+
+            pte::pte_addr(cx, conf.read().satp_ppn, *vpn_2.get())
 
             div {
                 class: "flex space-x-3 py-2",
@@ -71,14 +63,17 @@ pub fn visualizer(cx: Scope) -> Element {
                         oninput: move |event|
                         if let Some(hex_noprefix) = event.value.strip_prefix("0x") {
                             if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
-                                //vaddr.set(hex);
+                                pte.set(hex)
                             }
                         } else if let Ok(dec) = event.value.parse::<u64>() {
-                            //vaddr.set(dec);
+                            pte.set(dec)
                         }
                     }
                 }
             }
+
+            pte::bit_field(cx, pte)
+            pte::pte_data(cx, pte)
         }
     })
 }
