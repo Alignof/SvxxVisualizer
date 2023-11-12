@@ -32,5 +32,16 @@ pub fn visualizer(cx: Scope) -> Element {
 
             bit_field::vaddr(cx, vaddr)
         }
+
+        div {
+            class: "mx-auto p-8 flex flex-col justify-start",
+            div {
+                class: "flex space-x-3 py-2",
+                p {
+                    class: "float-left text-xl",
+                    "pte addr = PPN × PAGESIZE + VPN[2] × pte_size"
+                }
+            }
+        }
     })
 }
