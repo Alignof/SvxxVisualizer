@@ -38,7 +38,8 @@ pub fn visualizer(cx: Scope) -> Element {
                 }
             }
 
-            bit_field::vaddr(cx, vaddr)
+            vaddr::bit_field(cx, vaddr)
+            vaddr::bit_data(cx, vaddr)
         }
 
         div {

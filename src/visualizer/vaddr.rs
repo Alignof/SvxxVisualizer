@@ -49,7 +49,7 @@ fn bit_box<'a>(cx: Scope<'a>, bit: u8, color_map: &[VaddrField]) -> Element<'a> 
     })
 }
 
-pub fn vaddr<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
+pub fn bit_field<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
     let vaddr_bytes = vaddr.get().to_le_bytes();
     let boxes = vaddr_bytes
         .iter()
@@ -72,6 +72,11 @@ pub fn vaddr<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
                 bf
             }
         }
+    })
+}
+
+pub fn bit_data<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
+    cx.render(rsx! {
         div {
             class: "py-1 flex text-xl text-yellow-500 font-mono",
             div {
