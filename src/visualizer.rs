@@ -38,6 +38,10 @@ impl TranslateState {
         self.ppn[2] = ppn_value as u32 >> 28 & 0x3ffffff;
     }
 
+    pub fn ppn(&self, index: usize) -> u64 {
+        self.ppn[index] as u64
+    }
+
     pub fn enable_flags(&mut self, index: usize, pte: u64) {
         self.level_flags[index] = pte >> 1 & 0x1 == 0 && pte >> 3 & 0x1 == 0;
     }
