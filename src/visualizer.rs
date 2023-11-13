@@ -212,6 +212,44 @@ fn trans_lv3<'a>(
     })
 }
 
+fn show_paddr<'a>(
+    cx: Scope<'a>,
+    page_off: u64,
+    trans_state: &'a UseState<TranslateState>,
+) -> Element<'a> {
+    let level = trans_state.get().get_level();
+    let trans = trans_state.get();
+    cx.render(rsx! {
+        div {
+            class: "mx-auto p-8 flex flex-col justify-start bg-red-300",
+
+            div {
+                p {
+                    class: "float-left text-xl",
+                    match level {
+                        0 => format!("paddr = {:#x}", trans.ppn(2) << 30 | trans.ppn(1) << 21 | trans.ppn(0) << 12 | page_off),
+                        1 => {
+                            if trans.ppn(0) != 0 {
+                                format!("trans.ppn(0) != 0")
+                            } else {
+                                format!("paddr = {:#x}", trans.ppn(2) << 30 | trans.ppn(1) << 21 | trans.vpn(0) << 12 | page_off)
+                            }
+                        }
+                        2 => {
+                            if trans.ppn(0) != 0 || trans.ppn(1) != 0 {
+                                format!("trans.ppn(0) != 0 || trans.ppn(1) != 0")
+                            } else {
+                                format!("paddr = {:#x}", trans.ppn(2) << 30 | trans.vpn(1) << 21 | trans.vpn(0) << 12 | page_off)
+                            }
+                        }
+                        _ => format!("")
+                    }
+                }
+            }
+        }
+    })
+}
+
 pub fn visualizer(cx: Scope) -> Element {
     let conf = use_shared_state::<Config>(cx).unwrap();
     let vaddr = use_state(cx, || 0);
