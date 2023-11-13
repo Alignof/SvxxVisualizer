@@ -72,6 +72,8 @@ fn trans_lv1<'a>(
     trans_state: &'a UseState<TranslateState>,
 ) -> Element<'a> {
     let conf = use_shared_state::<Config>(cx).unwrap();
+    let ppn =
+        trans_state.get().ppn(2) << 18 | trans_state.get().ppn(1) << 9 | trans_state.get().ppn(0);
     cx.render(rsx! {
         div {
             class: "mx-auto p-8 flex flex-col justify-start",
@@ -97,7 +99,7 @@ fn trans_lv1<'a>(
                                     t.set_ppn(hex);
                                     t.enable_flags(1, hex);
                                 });
-                                pte_addr_2.set(conf.read().satp_ppn * 4096 + trans_state.get().vpn(1) * 8);
+                                pte_addr_2.set(ppn * 4096 + trans_state.get().vpn(1) * 8);
                             }
                         } else if let Ok(dec) = event.value.parse::<u64>() {
                             pte_1.set(dec);
@@ -105,7 +107,7 @@ fn trans_lv1<'a>(
                                 t.set_ppn(dec);
                                 t.enable_flags(1, dec);
                             });
-                            pte_addr_2.set(conf.read().satp_ppn * 4096 + trans_state.get().vpn(1) * 8);
+                            pte_addr_2.set(ppn * 4096 + trans_state.get().vpn(1) * 8);
                         }
                     }
                 }
@@ -126,6 +128,8 @@ fn trans_lv2<'a>(
     trans_state: &'a UseState<TranslateState>,
 ) -> Element<'a> {
     let conf = use_shared_state::<Config>(cx).unwrap();
+    let ppn =
+        trans_state.get().ppn(2) << 18 | trans_state.get().ppn(1) << 9 | trans_state.get().ppn(0);
     cx.render(rsx! {
         div {
             class: "mx-auto p-8 flex flex-col justify-start",
@@ -151,7 +155,7 @@ fn trans_lv2<'a>(
                                     t.set_ppn(hex);
                                     t.enable_flags(0, hex);
                                 });
-                                pte_addr_3.set(conf.read().satp_ppn * 4096 + trans_state.get().vpn(0) * 8);
+                                pte_addr_3.set(ppn * 4096 + trans_state.get().vpn(0) * 8);
                             }
                         } else if let Ok(dec) = event.value.parse::<u64>() {
                             pte_2.set(dec);
@@ -159,7 +163,7 @@ fn trans_lv2<'a>(
                                 t.set_ppn(dec);
                                 t.enable_flags(0, dec);
                             });
-                            pte_addr_3.set(conf.read().satp_ppn * 4096 + trans_state.get().vpn(0) * 8);
+                            pte_addr_3.set(ppn * 4096 + trans_state.get().vpn(0) * 8);
                         }
                     }
                 }
