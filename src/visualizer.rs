@@ -230,6 +230,7 @@ fn trans_lv3<'a>(
 fn show_paddr<'a>(
     cx: Scope<'a>,
     page_off: u64,
+    vaddr: &'a UseState<u64>,
     trans_state: &'a UseState<TranslateState>,
 ) -> Element<'a> {
     let level = trans_state.get().get_level();
@@ -239,23 +240,25 @@ fn show_paddr<'a>(
             class: "mx-auto p-8 flex flex-col justify-start",
 
             div {
-                class: "p-4 bg-red-400",
+                class: "p-4 text-xl bg-red-400",
                 p {
-                    class: "float-left text-xl",
+                    format!("vaddr: {:x}", vaddr.get())
+                }
+                p {
                     match level {
-                        0 => format!("paddr = {:#x}", trans.ppn(2) << 30 | trans.ppn(1) << 21 | trans.ppn(0) << 12 | page_off),
+                        0 => format!("→ paddr: {:#x}", trans.ppn(2) << 30 | trans.ppn(1) << 21 | trans.ppn(0) << 12 | page_off),
                         1 => {
                             if trans.ppn(0) != 0 {
                                 format!("trans.ppn(0) != 0")
                             } else {
-                                format!("paddr = {:#x}", trans.ppn(2) << 30 | trans.ppn(1) << 21 | trans.vpn(0) << 12 | page_off)
+                                format!("→ paddr: {:#x}", trans.ppn(2) << 30 | trans.ppn(1) << 21 | trans.vpn(0) << 12 | page_off)
                             }
                         }
                         2 => {
                             if trans.ppn(0) != 0 || trans.ppn(1) != 0 {
                                 format!("trans.ppn(0) != 0 || trans.ppn(1) != 0")
                             } else {
-                                format!("paddr = {:#x}", trans.ppn(2) << 30 | trans.vpn(1) << 21 | trans.vpn(0) << 12 | page_off)
+                                format!("→ paddr: {:#x}", trans.ppn(2) << 30 | trans.vpn(1) << 21 | trans.vpn(0) << 12 | page_off)
                             }
                         }
                         _ => format!("")
@@ -323,7 +326,7 @@ pub fn visualizer(cx: Scope) -> Element {
         }
 
         if trans_state.get().result_flag() {
-            show_paddr(cx, vaddr.get() & 0xfff, &trans_state)
+            show_paddr(cx, vaddr.get() & 0xfff, vaddr, &trans_state)
         }
     })
 }
