@@ -29,17 +29,17 @@ impl TranslateState {
     }
 
     pub fn vpn(&self, index: usize) -> u64 {
-        self.vpn[index] as u64
+        u64::from(self.vpn[index])
     }
 
     pub fn set_ppn(&mut self, ppn_value: u64) {
-        self.ppn[0] = (ppn_value as u32 >> 10 & 0x1ff) as u32;
-        self.ppn[1] = (ppn_value as u32 >> 19 & 0x1ff) as u32;
-        self.ppn[2] = (ppn_value as u32 >> 28 & 0x3ffffff) as u32;
+        self.ppn[0] = (ppn_value >> 10 & 0x1ff) as u32;
+        self.ppn[1] = (ppn_value >> 19 & 0x1ff) as u32;
+        self.ppn[2] = (ppn_value >> 28 & 0x03ff_ffff) as u32;
     }
 
     pub fn ppn(&self, index: usize) -> u64 {
-        self.ppn[index] as u64
+        u64::from(self.ppn[index])
     }
 
     pub fn enable_flags(&mut self, index: usize, pte: u64) {
@@ -127,14 +127,13 @@ fn trans_lv2<'a>(
     pte_addr_3: &'a UseState<u64>,
     trans_state: &'a UseState<TranslateState>,
 ) -> Element<'a> {
-    let conf = use_shared_state::<Config>(cx).unwrap();
     let ppn =
         trans_state.get().ppn(2) << 18 | trans_state.get().ppn(1) << 9 | trans_state.get().ppn(0);
     cx.render(rsx! {
         div {
             class: "mx-auto p-8 flex flex-col justify-start",
 
-            pte::pte_addr(cx, pte_1.get() >> 10 & 0xfffffffffff, trans_state.get().vpn(1))
+            pte::pte_addr(cx, pte_1.get() >> 10 & 0x0fff_ffff_ffff, trans_state.get().vpn(1))
 
             div {
                 class: "flex space-x-3 py-2",
@@ -186,7 +185,7 @@ fn trans_lv3<'a>(
         div {
             class: "mx-auto p-8 flex flex-col justify-start",
 
-            pte::pte_addr(cx, pte_2.get() >> 10 & 0xfffffffffff, trans_state.get().vpn(1))
+            pte::pte_addr(cx, pte_2.get() >> 10 & 0x0fff_ffff_ffff, trans_state.get().vpn(1))
 
             div {
                 class: "flex space-x-3 py-2",
@@ -249,19 +248,19 @@ fn show_paddr<'a>(
                         0 => format!("→ paddr: {:#x}", trans.ppn(2) << 30 | trans.ppn(1) << 21 | trans.ppn(0) << 12 | page_off),
                         1 => {
                             if trans.ppn(0) != 0 {
-                                format!("trans.ppn(0) != 0")
+                                "trans.ppn(0) != 0".to_string()
                             } else {
                                 format!("→ paddr: {:#x}", trans.ppn(2) << 30 | trans.ppn(1) << 21 | trans.vpn(0) << 12 | page_off)
                             }
                         }
                         2 => {
                             if trans.ppn(0) != 0 || trans.ppn(1) != 0 {
-                                format!("trans.ppn(0) != 0 || trans.ppn(1) != 0")
+                                "trans.ppn(0) != 0 || trans.ppn(1) != 0".to_string()
                             } else {
                                 format!("→ paddr: {:#x}", trans.ppn(2) << 30 | trans.vpn(1) << 21 | trans.vpn(0) << 12 | page_off)
                             }
                         }
-                        _ => format!("")
+                        _ => String::new()
                     }
                 }
             }
@@ -272,7 +271,7 @@ fn show_paddr<'a>(
 pub fn visualizer(cx: Scope) -> Element {
     let conf = use_shared_state::<Config>(cx).unwrap();
     let vaddr = use_state(cx, || 0);
-    let trans_state = use_state(cx, || TranslateState::new());
+    let trans_state = use_state(cx, TranslateState::new);
     let pte_addr_1 = use_state(cx, || 0);
     let pte_1 = use_state(cx, || 0);
     let pte_addr_2 = use_state(cx, || 0);
@@ -314,19 +313,19 @@ pub fn visualizer(cx: Scope) -> Element {
         }
 
         if trans_state.get().flags(2) {
-            trans_lv1(cx, &pte_addr_1, &pte_1, &pte_addr_2, &trans_state)
+            trans_lv1(cx, pte_addr_1, pte_1, pte_addr_2, trans_state)
         }
 
         if trans_state.get().flags(1) {
-            trans_lv2(cx, &pte_1, &pte_addr_2, &pte_2, &pte_addr_3, &trans_state)
+            trans_lv2(cx, pte_1, pte_addr_2, pte_2, pte_addr_3, trans_state)
         }
 
         if trans_state.get().flags(0) {
-            trans_lv3(cx, &pte_2, &pte_addr_3, &trans_state)
+            trans_lv3(cx, pte_2, pte_addr_3, trans_state)
         }
 
         if trans_state.get().result_flag() {
-            show_paddr(cx, vaddr.get() & 0xfff, vaddr, &trans_state)
+            show_paddr(cx, vaddr.get() & 0xfff, vaddr, trans_state)
         }
     })
 }

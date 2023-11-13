@@ -8,7 +8,7 @@ enum VaddrField {
     Resv,
 }
 
-use VaddrField::*;
+use VaddrField::{Poff, Resv, Vpn0, Vpn1, Vpn2};
 const VADDR_COLOR_MAP: [[VaddrField; 8]; 8] = [
     [Resv, Resv, Resv, Resv, Resv, Resv, Resv, Resv],
     [Resv, Resv, Resv, Resv, Resv, Resv, Resv, Resv],

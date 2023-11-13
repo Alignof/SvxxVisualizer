@@ -11,7 +11,7 @@ fn main() {
 
 // create a component that renders a div with the text "Hello, world!"
 fn app(cx: Scope) -> Element {
-    use_shared_state_provider(cx, || Config::new());
+    use_shared_state_provider(cx, Config::new);
     cx.render(rsx! {
         div {
             class: "flex flex-col min-h-screen bg-gray-700 text-white",

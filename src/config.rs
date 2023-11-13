@@ -13,7 +13,7 @@ impl Config {
         Config { satp_ppn: 0 }
     }
 
-    pub fn set_ppn(&mut self, new_val: &String) {
+    pub fn set_ppn(&mut self, new_val: &str) {
         if let Some(hex_noprefix) = new_val.strip_prefix("0x") {
             if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
                 self.satp_ppn = hex;
@@ -24,7 +24,7 @@ impl Config {
     }
 }
 
-pub fn config<'a>(cx: Scope<'a>) -> Element<'a> {
+pub fn config(cx: Scope<'_>) -> Element<'_> {
     let conf = use_shared_state::<Config>(cx).unwrap();
     cx.render(rsx! {
         div {

@@ -11,7 +11,7 @@ enum PteField {
     N,
 }
 
-use PteField::*;
+use PteField::{Flags, Ppn0, Ppn1, Ppn2, Resv, Rsw, N, PBMT};
 const PTE_COLOR_MAP: [[PteField; 8]; 8] = [
     [N, PBMT, Resv, Resv, Resv, Resv, Resv, Resv],
     [Resv, Resv, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2],
@@ -89,7 +89,7 @@ pub fn pte_data<'a>(cx: Scope<'a>, pte: &'a UseState<u64>) -> Element<'a> {
             }
             div {
                 class: "pl-2 text-white",
-                format!("{:#03x}", pte.get() >> 28 & 0x3ffffff)
+                format!("{:#03x}", pte.get() >> 28 & 0x03ff_ffff)
             }
         }
         div {
@@ -133,7 +133,7 @@ pub fn pte_data<'a>(cx: Scope<'a>, pte: &'a UseState<u64>) -> Element<'a> {
                     if pte.get() >> i & 0x1 == 1 {
                         format!("{} ", flag_name[i])
                     } else {
-                        format!("")
+                        String::new()
                     }
                 }
             }
