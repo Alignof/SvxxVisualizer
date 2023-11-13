@@ -28,8 +28,11 @@ pub fn config<'a>(cx: Scope<'a>) -> Element<'a> {
     let conf = use_shared_state::<Config>(cx).unwrap();
     cx.render(rsx! {
         div {
-            class: "mx-auto p-8 flex flex-col justify-start bg-red-400",
-            h1 { "config" }
+            class: "mx-auto p-8 flex flex-col justify-start bg-gray-500",
+            div {
+                class: "text-2xl py-2",
+                "--config--"
+            }
             div {
                 class: "flex space-x-3 py-2",
                 p {
