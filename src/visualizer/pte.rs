@@ -14,9 +14,9 @@ enum PteField {
 use PteField::*;
 const PTE_COLOR_MAP: [[PteField; 8]; 8] = [
     [N, PBMT, Resv, Resv, Resv, Resv, Resv, Resv],
-    [Resv, Resv, Resv, Resv, Resv, Resv, Resv, Resv],
-    [Resv, Resv, Resv, Resv, Resv, Resv, Resv, Resv],
-    [Resv, Resv, Resv, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2],
+    [Resv, Resv, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2],
+    [Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2],
+    [Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2],
     [Ppn2, Ppn2, Ppn2, Ppn2, Ppn1, Ppn1, Ppn1, Ppn1],
     [Ppn1, Ppn1, Ppn1, Ppn1, Ppn1, Ppn0, Ppn0, Ppn0],
     [Ppn0, Ppn0, Ppn0, Ppn0, Ppn0, Ppn0, Rsw, Rsw],
@@ -140,6 +140,7 @@ pub fn pte_data<'a>(cx: Scope<'a>, pte: &'a UseState<u64>) -> Element<'a> {
         }
     })
 }
+
 pub fn pte_addr(cx: Scope, satp_ppn: u64, vpn_2: u64) -> Element {
     cx.render(rsx! {
         div {
