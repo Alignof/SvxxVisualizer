@@ -44,10 +44,15 @@ impl TranslateState {
 
     pub fn enable_flags(&mut self, index: usize, pte: u64) {
         self.level_flags[index] = pte >> 1 & 0x1 == 0 && pte >> 3 & 0x1 == 0;
+        self.result_flag = pte >> 1 & 0x1 == 1 || pte >> 3 & 0x1 == 1;
     }
 
     pub fn flags(&self, index: usize) -> bool {
         self.level_flags[index]
+    }
+
+    pub fn set_result_flag(&mut self, new_val: bool) {
+        self.result_flag = new_val;
     }
 
     pub fn result_flag(&self) -> bool {
@@ -198,6 +203,7 @@ fn trans_lv3<'a>(
                                     t.set_ppn(hex);
                                     t.enable_flags(0, hex);
                                 });
+                                trans_state.with_mut(|t| t.set_result_flag(true));
                             }
                         } else if let Ok(dec) = event.value.parse::<u64>() {
                             pte_3.set(dec);
@@ -205,6 +211,7 @@ fn trans_lv3<'a>(
                                 t.set_ppn(dec);
                                 t.enable_flags(0, dec);
                             });
+                            trans_state.with_mut(|t| t.set_result_flag(true));
                         }
                     }
                 }
