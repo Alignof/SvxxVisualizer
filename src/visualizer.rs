@@ -16,7 +16,7 @@ impl TranslateState {
         TranslateState {
             vpn: [0, 0, 0],
             ppn: [0, 0, 0],
-            level_flags: [true, false, false],
+            level_flags: [false, false, true],
         }
     }
 
@@ -34,6 +34,14 @@ impl TranslateState {
         self.ppn[0] = ppn_value as u32 >> 10 & 0x1ff;
         self.ppn[1] = ppn_value as u32 >> 19 & 0x1ff;
         self.ppn[2] = ppn_value as u32 >> 28 & 0x3ffffff;
+    }
+
+    pub fn enable_flags(&mut self, index: usize, pte: u64) {
+        self.level_flags[index] = pte >> 1 & 0x1 == 0 && pte >> 3 & 0x1 == 0;
+    }
+
+    pub fn flags(&self, index: usize) -> bool {
+        self.level_flags[index]
     }
 }
 
