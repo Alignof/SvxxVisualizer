@@ -8,7 +8,7 @@ pub fn visualizer(cx: Scope) -> Element {
     let conf = use_shared_state::<Config>(cx).unwrap();
     let vaddr = use_state(cx, || 0);
     let vpn_2 = use_state(cx, || 0);
-    let pte_addr = use_state(cx, || 0);
+    let pte_addr_1 = use_state(cx, || 0);
     let pte = use_state(cx, || 0);
     cx.render(rsx! {
         div {
@@ -29,12 +29,12 @@ pub fn visualizer(cx: Scope) -> Element {
                             if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
                                 vaddr.set(hex);
                                 vpn_2.set(hex >> 30 & 0x1ff);
-                                pte_addr.set(conf.read().satp_ppn as u64 * 4096 + vpn_2.get() * 8);
+                                pte_addr_1.set(conf.read().satp_ppn as u64 * 4096 + vpn_2.get() * 8);
                             }
                         } else if let Ok(dec) = event.value.parse::<u64>() {
                             vaddr.set(dec);
                             vpn_2.set(dec >> 30 & 0x1ff);
-                            pte_addr.set(conf.read().satp_ppn as u64 * 4096 + vpn_2.get() * 8);
+                            pte_addr_1.set(conf.read().satp_ppn as u64 * 4096 + vpn_2.get() * 8);
                         }
                     }
                 }
@@ -53,7 +53,7 @@ pub fn visualizer(cx: Scope) -> Element {
                 class: "flex space-x-3 py-2",
                 p {
                     class: "float-left text-lg",
-                    format!("{:#x} (pte addr):", pte_addr.get())
+                    format!("{:#x} (pte addr):", pte_addr_1.get())
                 }
 
                 form {
