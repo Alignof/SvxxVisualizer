@@ -5,7 +5,7 @@ use dioxus::prelude::*;
 /// address translation config
 pub struct Config {
     /// satp.ppn
-    pub satp_ppn: u32,
+    pub satp_ppn: u64,
 }
 
 impl Config {
@@ -15,10 +15,10 @@ impl Config {
 
     pub fn set_ppn(&mut self, new_val: &String) {
         if let Some(hex_noprefix) = new_val.strip_prefix("0x") {
-            if let Ok(hex) = u32::from_str_radix(hex_noprefix, 16) {
+            if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
                 self.satp_ppn = hex;
             }
-        } else if let Ok(dec) = new_val.parse::<u32>() {
+        } else if let Ok(dec) = new_val.parse::<u64>() {
             self.satp_ppn = dec;
         }
     }

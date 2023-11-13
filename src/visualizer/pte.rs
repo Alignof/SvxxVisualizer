@@ -140,7 +140,7 @@ pub fn pte_data<'a>(cx: Scope<'a>, pte: &'a UseState<u64>) -> Element<'a> {
         }
     })
 }
-pub fn pte_addr(cx: Scope, satp_ppn: u32, vpn_2: u64) -> Element {
+pub fn pte_addr(cx: Scope, satp_ppn: u64, vpn_2: u64) -> Element {
     cx.render(rsx! {
         div {
             p {
