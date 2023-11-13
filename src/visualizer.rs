@@ -100,6 +100,7 @@ fn trans_lv1<'a>(
 
 fn trans_lv2<'a>(
     cx: Scope<'a>,
+    pte_1: &'a UseState<u64>,
     pte_addr_2: &'a UseState<u64>,
     pte_2: &'a UseState<u64>,
     pte_addr_3: &'a UseState<u64>,
@@ -110,7 +111,7 @@ fn trans_lv2<'a>(
         div {
             class: "mx-auto p-8 flex flex-col justify-start",
 
-            pte::pte_addr(cx, pte_2.get() >> 10 & 0xfffffffffff, trans_state.get().vpn(1))
+            pte::pte_addr(cx, pte_1.get() >> 10 & 0xfffffffffff, trans_state.get().vpn(1))
 
             div {
                 class: "flex space-x-3 py-2",
@@ -140,6 +141,56 @@ fn trans_lv2<'a>(
                                 t.enable_flags(0, dec);
                             });
                             pte_addr_3.set(conf.read().satp_ppn * 4096 + trans_state.get().vpn(0) * 8);
+                        }
+                    }
+                }
+            }
+
+            pte::bit_field(cx, pte_2)
+            pte::pte_data(cx, pte_2)
+        }
+    })
+}
+
+fn trans_lv3<'a>(
+    cx: Scope<'a>,
+    pte_2: &'a UseState<u64>,
+    pte_addr_3: &'a UseState<u64>,
+    trans_state: &'a UseState<TranslateState>,
+) -> Element<'a> {
+    let pte_3 = use_state(cx, || 0);
+    cx.render(rsx! {
+        div {
+            class: "mx-auto p-8 flex flex-col justify-start",
+
+            pte::pte_addr(cx, pte_2.get() >> 10 & 0xfffffffffff, trans_state.get().vpn(1))
+
+            div {
+                class: "flex space-x-3 py-2",
+                p {
+                    class: "float-left text-lg",
+                    format!("{:#x} (lv2 pte addr):", pte_addr_3.get())
+                }
+
+                form {
+                    onsubmit: |_| {},
+                    input {
+                        class: "bg-gray-900",
+                        oninput: move |event|
+                        if let Some(hex_noprefix) = event.value.strip_prefix("0x") {
+                            if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
+                                pte_3.set(hex);
+                                trans_state.with_mut(|t| {
+                                    t.set_ppn(hex);
+                                    t.enable_flags(0, hex);
+                                });
+                            }
+                        } else if let Ok(dec) = event.value.parse::<u64>() {
+                            pte_3.set(dec);
+                            trans_state.with_mut(|t| {
+                                t.set_ppn(dec);
+                                t.enable_flags(0, dec);
+                            });
                         }
                     }
                 }
@@ -200,7 +251,11 @@ pub fn visualizer(cx: Scope) -> Element {
         }
 
         if trans_state.get().flags(1) {
-            trans_lv2(cx, &pte_addr_2, &pte_2, &pte_addr_3, &trans_state)
+            trans_lv2(cx, &pte_1, &pte_addr_2, &pte_2, &pte_addr_3, &trans_state)
+        }
+
+        if trans_state.get().flags(0) {
+            trans_lv3(cx, &pte_2, &pte_addr_3, &trans_state)
         }
     })
 }
