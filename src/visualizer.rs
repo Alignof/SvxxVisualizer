@@ -85,38 +85,52 @@ pub fn visualizer(cx: Scope) -> Element {
             vaddr::bit_data(cx, vaddr)
         }
 
-        div {
-            class: "mx-auto px-8 flex flex-col justify-start",
+        if trans_state.get().flags(2) {
+            cx.render(rsx! {
+                div {
+                    class: "mx-auto px-8 flex flex-col justify-start",
 
-            pte::pte_addr(cx, conf.read().satp_ppn, trans_state.get().vpn(2))
+                    pte::pte_addr(cx, conf.read().satp_ppn, trans_state.get().vpn(2))
 
-            div {
-                class: "flex space-x-3 py-2",
-                p {
-                    class: "float-left text-lg",
-                    format!("{:#x} (pte addr):", pte_addr_1.get())
-                }
+                    div {
+                        class: "flex space-x-3 py-2",
+                        p {
+                            class: "float-left text-lg",
+                            format!("{:#x} (lv1 pte addr):", pte_addr_1.get())
+                        }
 
-                form {
-                    onsubmit: |_| {},
-                    input {
-                        class: "bg-gray-900",
-                        oninput: move |event|
-                        if let Some(hex_noprefix) = event.value.strip_prefix("0x") {
-                            if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
-                                pte_1.set(hex);
-                                trans_state.with_mut(|t| t.set_ppn(hex));
+                        form {
+                            onsubmit: |_| {},
+                            input {
+                                class: "bg-gray-900",
+                                oninput: move |event|
+                                if let Some(hex_noprefix) = event.value.strip_prefix("0x") {
+                                    if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
+                                        pte_1.set(hex);
+                                        trans_state.with_mut(|t| {
+                                            t.set_ppn(hex);
+                                            t.enable_flags(1, hex);
+                                        });
+                                        pte_addr_2.set(conf.read().satp_ppn * 4096 + trans_state.get().vpn(1) * 8);
+                                    }
+                                } else if let Ok(dec) = event.value.parse::<u64>() {
+                                    pte_1.set(dec);
+                                    trans_state.with_mut(|t| {
+                                        t.set_ppn(dec);
+                                        t.enable_flags(1, dec);
+                                    });
+                                    pte_addr_2.set(conf.read().satp_ppn * 4096 + trans_state.get().vpn(1) * 8);
+                                }
                             }
-                        } else if let Ok(dec) = event.value.parse::<u64>() {
-                            pte_1.set(dec);
-                            trans_state.with_mut(|t| t.set_ppn(dec));
                         }
                     }
-                }
-            }
 
-            pte::bit_field(cx, pte_1)
-            pte::pte_data(cx, pte_1)
+                    pte::bit_field(cx, pte_1)
+                    pte::pte_data(cx, pte_1)
+                }
+            })
+        }
+
         }
     })
 }
