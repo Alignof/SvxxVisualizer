@@ -27,7 +27,7 @@ fn app(cx: Scope) -> Element {
             }
 
             footer {
-                class: "info text-white bg-blue-900 text-center mt-auto",
+                class: "info text-white bg-cyan-950 text-center mt-auto",
                 p { "Copyright 2023 n.takana All rights reserved."}
                 p { "github: ", a { href: "https://github.com/Alignof/SvxxVisualizer", "https://github.com/Alignof/SvxxVisualizer" }}
             }
