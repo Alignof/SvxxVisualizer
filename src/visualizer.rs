@@ -22,10 +22,10 @@ impl TranslateState {
         }
     }
 
-    pub fn init_vpn(&mut self, vpn_value: u64) {
-        self.vpn[0] = vpn_value as u32 >> 12 & 0x1ff;
-        self.vpn[1] = vpn_value as u32 >> 21 & 0x1ff;
-        self.vpn[2] = vpn_value as u32 >> 30 & 0x1ff;
+    pub fn set_vpn(&mut self, vpn_value: u64) {
+        self.vpn[0] = (vpn_value >> 12 & 0x1ff) as u32;
+        self.vpn[1] = (vpn_value >> 21 & 0x1ff) as u32;
+        self.vpn[2] = (vpn_value >> 30 & 0x1ff) as u32;
     }
 
     pub fn vpn(&self, index: usize) -> u64 {
@@ -33,9 +33,9 @@ impl TranslateState {
     }
 
     pub fn set_ppn(&mut self, ppn_value: u64) {
-        self.ppn[0] = ppn_value as u32 >> 10 & 0x1ff;
-        self.ppn[1] = ppn_value as u32 >> 19 & 0x1ff;
-        self.ppn[2] = ppn_value as u32 >> 28 & 0x3ffffff;
+        self.ppn[0] = (ppn_value as u32 >> 10 & 0x1ff) as u32;
+        self.ppn[1] = (ppn_value as u32 >> 19 & 0x1ff) as u32;
+        self.ppn[2] = (ppn_value as u32 >> 28 & 0x3ffffff) as u32;
     }
 
     pub fn ppn(&self, index: usize) -> u64 {
@@ -294,12 +294,12 @@ pub fn visualizer(cx: Scope) -> Element {
                         if let Some(hex_noprefix) = event.value.strip_prefix("0x") {
                             if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
                                 vaddr.set(hex);
-                                trans_state.with_mut(|t| t.init_vpn(hex));
+                                trans_state.with_mut(|t| t.set_vpn(hex));
                                 pte_addr_1.set(conf.read().satp_ppn * 4096 + trans_state.get().vpn(2) * 8);
                             }
                         } else if let Ok(dec) = event.value.parse::<u64>() {
                             vaddr.set(dec);
-                            trans_state.with_mut(|t| t.init_vpn(dec));
+                            trans_state.with_mut(|t| t.set_vpn(dec));
                             pte_addr_1.set(conf.read().satp_ppn * 4096 + trans_state.get().vpn(2) * 8);
                         }
                     }
