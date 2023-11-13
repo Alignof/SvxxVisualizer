@@ -49,6 +49,10 @@ impl TranslateState {
     pub fn result_flag(&self) -> bool {
         self.result_flag
     }
+
+    pub fn get_level(&self) -> usize {
+        self.level_flags.iter().position(|x| *x).unwrap()
+    }
 }
 
 fn trans_lv1<'a>(
@@ -262,6 +266,10 @@ pub fn visualizer(cx: Scope) -> Element {
 
         if trans_state.get().flags(0) {
             trans_lv3(cx, &pte_2, &pte_addr_3, &trans_state)
+        }
+
+        if trans_state.get().result_flag() {
+            show_paddr(cx, vaddr.get() & 0xfff, &trans_state)
         }
     })
 }
