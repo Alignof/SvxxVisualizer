@@ -9,6 +9,7 @@ struct TranslateState {
     vpn: [u32; 3],
     ppn: [u32; 3],
     level_flags: [bool; 3],
+    result_flag: bool,
 }
 
 impl TranslateState {
@@ -17,6 +18,7 @@ impl TranslateState {
             vpn: [0, 0, 0],
             ppn: [0, 0, 0],
             level_flags: [false, false, true],
+            result_flag: false,
         }
     }
 
@@ -42,6 +44,10 @@ impl TranslateState {
 
     pub fn flags(&self, index: usize) -> bool {
         self.level_flags[index]
+    }
+
+    pub fn result_flag(&self) -> bool {
+        self.result_flag
     }
 }
 
