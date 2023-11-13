@@ -236,9 +236,10 @@ fn show_paddr<'a>(
     let trans = trans_state.get();
     cx.render(rsx! {
         div {
-            class: "mx-auto p-8 flex flex-col justify-start bg-red-300",
+            class: "mx-auto p-8 flex flex-col justify-start",
 
             div {
+                class: "p-4 bg-red-400",
                 p {
                     class: "float-left text-xl",
                     match level {
