@@ -1,0 +1,26 @@
+# https://qiita.com/suzuki_sh/items/c53a6056bb4377a50861
+name: Github Pages
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: rustup target add wasm32-unknown-unknown
+    - run: cargo install trunk
+    - run: trunk build --release --public-url SvxxVisualizer
+    - run: cp -r ./dist/ ./public/
+    - uses: peaceiris/actions-gh-pages@v3
+      if: ${{ github.ref == 'refs/heads/master' }}
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./public
