@@ -241,7 +241,7 @@ fn show_paddr<'a>(
             div {
                 class: "p-4 text-xl bg-red-400",
                 p {
-                    format!("vaddr: {:x}", vaddr.get())
+                    format!("vaddr: {:#x}", vaddr.get())
                 }
                 p {
                     match level {
