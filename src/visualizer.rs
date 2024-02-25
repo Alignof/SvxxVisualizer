@@ -4,6 +4,8 @@ use dioxus::prelude::*;
 mod pte;
 mod vaddr;
 
+const MAX_LEVEL: usize = 3;
+
 /// Global state
 #[derive(Clone)]
 struct TranslateState {
@@ -11,13 +13,13 @@ struct TranslateState {
     vaddr: u64,
 
     /// Virtual page number.
-    vpn: [u32; 3],
+    vpn: [u32; MAX_LEVEL],
 
     /// Page Table Entry each levels.
-    pte_lv: [u64; 3],
+    pte_lv: [u64; MAX_LEVEL],
 
     /// Page Table Entry address each levels.
-    pte_addr_lv: [u64; 3],
+    pte_addr_lv: [u64; MAX_LEVEL],
 
     /// Current level.
     /// None -> has not tranlated yet.
@@ -118,7 +120,11 @@ impl TranslateState {
     }
 }
 
-fn trans_lv1<'a>(cx: Scope<'a>, trans_state: &'a UseState<TranslateState>) -> Element<'a> {
+fn trans_each_level<'a>(
+    cx: Scope<'a>,
+    level: usize,
+    trans_state: &'a UseState<TranslateState>,
+) -> Element<'a> {
     let conf = use_shared_state::<Config>(cx).unwrap();
     let ppn =
         trans_state.get().ppn(2) << 18 | trans_state.get().ppn(1) << 9 | trans_state.get().ppn(0);
@@ -126,13 +132,13 @@ fn trans_lv1<'a>(cx: Scope<'a>, trans_state: &'a UseState<TranslateState>) -> El
         div {
             class: "mx-auto p-8 flex flex-col justify-start",
 
-            pte::pte_addr(cx, conf.read().satp_ppn, trans_state.get().vpn(2))
+            pte::pte_addr(cx, conf.read().satp_ppn, trans_state.get().vpn(MAX_LEVEL - level))
 
             div {
                 class: "flex space-x-3 py-2",
                 p {
                     class: "float-left text-lg",
-                    format!("{:#x} (lv1 pte addr):", trans_state.get_pte_addr(1))
+                    format!("{:#x} (lv1 pte addr):", trans_state.get_pte_addr(level))
                 }
 
                 form {
@@ -143,16 +149,20 @@ fn trans_lv1<'a>(cx: Scope<'a>, trans_state: &'a UseState<TranslateState>) -> El
                         if let Some(hex_noprefix) = event.value.strip_prefix("0x") {
                             if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
                                 trans_state.with_mut(|t| {
-                                    t.set_pte(1, hex);
-                                    t.update_level(1, hex);
-                                    t.set_pte_addr(2, ppn * 4096 + trans_state.get().vpn(1) * 8);
+                                    t.set_pte(level, hex);
+                                    t.update_level(level, hex);
+                                    if level < MAX_LEVEL {
+                                        t.set_pte_addr(level + 1, ppn * 4096 + trans_state.get().vpn(MAX_LEVEL - 1 - level) * 8);
+                                    }
                                 });
                             }
                         } else if let Ok(dec) = event.value.parse::<u64>() {
                             trans_state.with_mut(|t| {
-                                t.set_pte(1, dec);
-                                t.update_level(1, dec);
-                                t.set_pte_addr(2, ppn * 4096 + trans_state.get().vpn(1) * 8);
+                                t.set_pte(level, dec);
+                                t.update_level(level, dec);
+                                if level < MAX_LEVEL {
+                                    t.set_pte_addr(level + 1, ppn * 4096 + trans_state.get().vpn(MAX_LEVEL - 1 - level) * 8);
+                                }
                             });
                         }
                     }
@@ -243,18 +253,12 @@ pub fn visualizer(cx: Scope) -> Element {
         }
 
         if trans_state.get().current_level.is_some() {
-            trans_lv1(cx, trans_state)
+            for level in 1..=MAX_LEVEL {
+                if level <= trans_state.get_level() {
+                    trans_each_level(cx, level, trans_state);
+                }
+            }
         }
-
-        /*
-        if trans_state.get().flags(1) {
-            trans_lv2(cx, trans_state)
-        }
-
-        if trans_state.get().flags(0) {
-            trans_lv3(cx, trans_state)
-        }
-        */
 
         if trans_state.get().result_flag() {
             show_paddr(cx, trans_state)
