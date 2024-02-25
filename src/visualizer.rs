@@ -19,9 +19,6 @@ struct TranslateState {
     /// Page Table Entry address each levels.
     pte_addr_lv: [u64; 3],
 
-    /// Physical page number.
-    ppn: [u32; 3],
-
     /// Current level.
     /// None -> has not tranlated yet.
     /// Some(x) -> level x (0~2).
@@ -39,7 +36,6 @@ impl TranslateState {
             vpn: [0, 0, 0],
             pte_lv: [0, 0, 0],
             pte_addr_lv: [0, 0, 0],
-            ppn: [0, 0, 0],
             current_level: None,
             showing_result_flag: false,
         }
@@ -77,9 +73,6 @@ impl TranslateState {
     /// Level's range is 1~3 (convert to 0~2).
     pub fn set_pte(&mut self, level: usize, pte_value: u64) {
         self.pte_lv[level - 1] = pte_value;
-        self.ppn[0] = (pte_value >> 10 & 0x1ff) as u32;
-        self.ppn[1] = (pte_value >> 19 & 0x1ff) as u32;
-        self.ppn[2] = (pte_value >> 28 & 0x03ff_ffff) as u32;
     }
 
     /// Get PTE address according to level.
@@ -96,7 +89,13 @@ impl TranslateState {
 
     /// Return PPN value according to index.
     pub fn ppn(&self, index: usize) -> u64 {
-        u64::from(self.ppn[index])
+        let pte = self.pte_lv[self.current_level.unwrap_or(0)];
+        match index {
+            0 => pte >> 10 & 0x1ff,
+            1 => pte >> 19 & 0x1ff,
+            2 => pte >> 28 & 0x3ff_ffff,
+            _ => unreachable!(),
+        }
     }
 
     /// Enable display flags according to pte value.
