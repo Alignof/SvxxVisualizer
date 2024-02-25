@@ -9,16 +9,24 @@ mod vaddr;
 struct TranslateState {
     /// Virtual address.
     vaddr: u64,
+
     /// Virtual page number.
     vpn: [u32; 3],
+
     /// Page Table Entry each levels.
     pte_lv: [u64; 3],
+
     /// Page Table Entry address each levels.
     pte_addr_lv: [u64; 3],
+
     /// Physical page number.
     ppn: [u32; 3],
-    /// Showing each translate level flag.
-    level_flags: [bool; 3],
+
+    /// Current level.
+    /// None -> has not tranlated yet.
+    /// Some(x) -> level x (0~2).
+    current_level: Option<usize>,
+
     /// Showing result flag.
     showing_result_flag: bool,
 }
@@ -32,7 +40,7 @@ impl TranslateState {
             pte_lv: [0, 0, 0],
             pte_addr_lv: [0, 0, 0],
             ppn: [0, 0, 0],
-            level_flags: [false, false, true],
+            current_level: None,
             showing_result_flag: false,
         }
     }
@@ -97,13 +105,10 @@ impl TranslateState {
 
     /// Enable display flags according to pte value.
     pub fn enable_flags(&mut self, index: usize, pte: u64) {
-        self.level_flags[index] = pte >> 1 & 0x1 == 0 && pte >> 3 & 0x1 == 0;
+        if pte >> 1 & 0x1 == 0 && pte >> 3 & 0x1 == 0 {
+            self.current_level = Some(index + 1);
+        }
         self.showing_result_flag = pte >> 1 & 0x1 == 1 || pte >> 3 & 0x1 == 1;
-    }
-
-    /// Return level_flags.
-    pub fn flags(&self, index: usize) -> bool {
-        self.level_flags[index]
     }
 
     /// Return showing_result_flag.
@@ -113,7 +118,7 @@ impl TranslateState {
 
     /// Get current tranlate level (0 ~ 2).
     pub fn get_level(&self) -> usize {
-        self.level_flags.iter().position(|x| *x).unwrap()
+        self.current_level.unwrap_or(0)
     }
 }
 
@@ -243,7 +248,7 @@ pub fn visualizer(cx: Scope) -> Element {
             vaddr::bit_data(cx, trans_state)
         }
 
-        if trans_state.get().flags(2) {
+        if trans_state.get().current_level.is_some() {
             trans_lv1(cx, trans_state)
         }
 
