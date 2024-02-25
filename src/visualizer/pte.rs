@@ -1,3 +1,4 @@
+use crate::visualizer::TranslateState;
 use dioxus::prelude::*;
 
 enum PteField {
@@ -53,8 +54,12 @@ fn bit_box<'a>(cx: Scope<'a>, bit: u8, color_map: &[PteField]) -> Element<'a> {
     })
 }
 
-pub fn bit_field<'a>(cx: Scope<'a>, pte: &'a UseState<u64>) -> Element<'a> {
-    let pte_bytes = pte.get().to_le_bytes();
+pub fn bit_field<'a>(
+    cx: Scope<'a>,
+    level: usize,
+    trans_state: &'a UseState<TranslateState>,
+) -> Element<'a> {
+    let pte_bytes = trans_state.get_pte(level).to_le_bytes();
     let boxes = pte_bytes
         .iter()
         .rev()
@@ -79,7 +84,12 @@ pub fn bit_field<'a>(cx: Scope<'a>, pte: &'a UseState<u64>) -> Element<'a> {
     })
 }
 
-pub fn pte_data<'a>(cx: Scope<'a>, pte: &'a UseState<u64>) -> Element<'a> {
+pub fn pte_data<'a>(
+    cx: Scope<'a>,
+    level: usize,
+    trans_state: &'a UseState<TranslateState>,
+) -> Element<'a> {
+    let pte = trans_state.get_pte(level);
     let flag_name = ["V", "R", "W", "X", "U", "G", "A", "D"];
     cx.render(rsx! {
         div {
@@ -89,7 +99,7 @@ pub fn pte_data<'a>(cx: Scope<'a>, pte: &'a UseState<u64>) -> Element<'a> {
             }
             div {
                 class: "pl-2 text-white",
-                format!("{:#03x}", pte.get() >> 28 & 0x03ff_ffff)
+                format!("{:#03x}", pte >> 28 & 0x03ff_ffff)
             }
         }
         div {
@@ -99,7 +109,7 @@ pub fn pte_data<'a>(cx: Scope<'a>, pte: &'a UseState<u64>) -> Element<'a> {
             }
             div {
                 class: "pl-2 text-white",
-                format!("{:#03x}", pte.get() >> 19 & 0x1ff)
+                format!("{:#03x}", pte >> 19 & 0x1ff)
             }
         }
         div {
@@ -109,7 +119,7 @@ pub fn pte_data<'a>(cx: Scope<'a>, pte: &'a UseState<u64>) -> Element<'a> {
             }
             div {
                 class: "pl-2 text-white",
-                format!("{:#03x}", pte.get() >> 10 & 0x1ff)
+                format!("{:#03x}", pte >> 10 & 0x1ff)
             }
         }
         div {
@@ -119,7 +129,7 @@ pub fn pte_data<'a>(cx: Scope<'a>, pte: &'a UseState<u64>) -> Element<'a> {
             }
             div {
                 class: "pl-2 text-white",
-                format!("{:#03x}", pte.get() >> 8 & 0x3)
+                format!("{:#03x}", pte >> 8 & 0x3)
             }
         }
         div {
@@ -130,7 +140,7 @@ pub fn pte_data<'a>(cx: Scope<'a>, pte: &'a UseState<u64>) -> Element<'a> {
             div {
                 class: "pl-2 text-white",
                 for i in 0..8 {
-                    if pte.get() >> i & 0x1 == 1 {
+                    if pte >> i & 0x1 == 1 {
                         format!("{} ", flag_name[i])
                     } else {
                         String::new()

@@ -11,6 +11,10 @@ struct TranslateState {
     vaddr: u64,
     /// Virtual page number.
     vpn: [u32; 3],
+    /// Page Table Entry each levels.
+    pte_lv: [u64; 3],
+    /// Page Table Entry address each levels.
+    pte_addr_lv: [u64; 3],
     /// Physical page number.
     ppn: [u32; 3],
     /// Showing each translate level flag.
@@ -25,6 +29,8 @@ impl TranslateState {
         TranslateState {
             vaddr: 0,
             vpn: [0, 0, 0],
+            pte_lv: [0, 0, 0],
+            pte_addr_lv: [0, 0, 0],
             ppn: [0, 0, 0],
             level_flags: [false, false, true],
             result_flag: false,
@@ -51,6 +57,30 @@ impl TranslateState {
     /// Return VPN value according to index.
     pub fn vpn(&self, index: usize) -> u64 {
         u64::from(self.vpn[index])
+    }
+
+    /// Get PTE according to level.
+    /// Level's range is 1~3 (convert to 0~2).
+    pub fn get_pte(&self, level: usize) -> u64 {
+        self.pte_lv[level - 1]
+    }
+
+    /// Set PTE according to level.
+    /// Level's range is 1~3 (convert to 0~2).
+    pub fn set_pte(&mut self, level: usize, pte: u64) {
+        self.pte_lv[level - 1] = pte;
+    }
+
+    /// Get PTE address according to level.
+    /// Level's range is 1~3 (convert to 0~2).
+    pub fn get_pte_addr(&self, level: usize) -> u64 {
+        self.pte_addr_lv[level - 1]
+    }
+
+    /// Set PTE address according to level.
+    /// Level's range is 1~3 (convert to 0~2).
+    pub fn set_pte_addr(&mut self, level: usize, pte_addr: u64) {
+        self.pte_addr_lv[level - 1] = pte_addr;
     }
 
     /// Set PPN from the ppn_value.
@@ -92,13 +122,7 @@ impl TranslateState {
     }
 }
 
-fn trans_lv1<'a>(
-    cx: Scope<'a>,
-    pte_addr_1: &'a UseState<u64>,
-    pte_1: &'a UseState<u64>,
-    pte_addr_2: &'a UseState<u64>,
-    trans_state: &'a UseState<TranslateState>,
-) -> Element<'a> {
+fn trans_lv1<'a>(cx: Scope<'a>, trans_state: &'a UseState<TranslateState>) -> Element<'a> {
     let conf = use_shared_state::<Config>(cx).unwrap();
     let ppn =
         trans_state.get().ppn(2) << 18 | trans_state.get().ppn(1) << 9 | trans_state.get().ppn(0);
@@ -112,7 +136,7 @@ fn trans_lv1<'a>(
                 class: "flex space-x-3 py-2",
                 p {
                     class: "float-left text-lg",
-                    format!("{:#x} (lv1 pte addr):", pte_addr_1.get())
+                    format!("{:#x} (lv1 pte addr):", trans_state.get_pte_addr(1))
                 }
 
                 form {
@@ -122,134 +146,27 @@ fn trans_lv1<'a>(
                         oninput: move |event|
                         if let Some(hex_noprefix) = event.value.strip_prefix("0x") {
                             if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
-                                pte_1.set(hex);
                                 trans_state.with_mut(|t| {
+                                    t.set_pte(1, hex);
                                     t.set_ppn(hex);
                                     t.enable_flags(1, hex);
+                                    t.set_pte_addr(2, ppn * 4096 + trans_state.get().vpn(1) * 8);
                                 });
-                                pte_addr_2.set(ppn * 4096 + trans_state.get().vpn(1) * 8);
                             }
                         } else if let Ok(dec) = event.value.parse::<u64>() {
-                            pte_1.set(dec);
                             trans_state.with_mut(|t| {
+                                t.set_pte(1, dec);
                                 t.set_ppn(dec);
                                 t.enable_flags(1, dec);
+                                t.set_pte_addr(2, ppn * 4096 + trans_state.get().vpn(1) * 8);
                             });
-                            pte_addr_2.set(ppn * 4096 + trans_state.get().vpn(1) * 8);
                         }
                     }
                 }
             }
 
-            pte::bit_field(cx, pte_1)
-            pte::pte_data(cx, pte_1)
-        }
-    })
-}
-
-fn trans_lv2<'a>(
-    cx: Scope<'a>,
-    pte_1: &'a UseState<u64>,
-    pte_addr_2: &'a UseState<u64>,
-    pte_2: &'a UseState<u64>,
-    pte_addr_3: &'a UseState<u64>,
-    trans_state: &'a UseState<TranslateState>,
-) -> Element<'a> {
-    let ppn =
-        trans_state.get().ppn(2) << 18 | trans_state.get().ppn(1) << 9 | trans_state.get().ppn(0);
-    cx.render(rsx! {
-        div {
-            class: "mx-auto p-8 flex flex-col justify-start",
-
-            pte::pte_addr(cx, pte_1.get() >> 10 & 0x0fff_ffff_ffff, trans_state.get().vpn(1))
-
-            div {
-                class: "flex space-x-3 py-2",
-                p {
-                    class: "float-left text-lg",
-                    format!("{:#x} (lv2 pte addr):", pte_addr_2.get())
-                }
-
-                form {
-                    onsubmit: |_| {},
-                    input {
-                        class: "bg-gray-900",
-                        oninput: move |event|
-                        if let Some(hex_noprefix) = event.value.strip_prefix("0x") {
-                            if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
-                                pte_2.set(hex);
-                                trans_state.with_mut(|t| {
-                                    t.set_ppn(hex);
-                                    t.enable_flags(0, hex);
-                                });
-                                pte_addr_3.set(ppn * 4096 + trans_state.get().vpn(0) * 8);
-                            }
-                        } else if let Ok(dec) = event.value.parse::<u64>() {
-                            pte_2.set(dec);
-                            trans_state.with_mut(|t| {
-                                t.set_ppn(dec);
-                                t.enable_flags(0, dec);
-                            });
-                            pte_addr_3.set(ppn * 4096 + trans_state.get().vpn(0) * 8);
-                        }
-                    }
-                }
-            }
-
-            pte::bit_field(cx, pte_2)
-            pte::pte_data(cx, pte_2)
-        }
-    })
-}
-
-fn trans_lv3<'a>(
-    cx: Scope<'a>,
-    pte_2: &'a UseState<u64>,
-    pte_addr_3: &'a UseState<u64>,
-    trans_state: &'a UseState<TranslateState>,
-) -> Element<'a> {
-    let pte_3 = use_state(cx, || 0);
-    cx.render(rsx! {
-        div {
-            class: "mx-auto p-8 flex flex-col justify-start",
-
-            pte::pte_addr(cx, pte_2.get() >> 10 & 0x0fff_ffff_ffff, trans_state.get().vpn(1))
-
-            div {
-                class: "flex space-x-3 py-2",
-                p {
-                    class: "float-left text-lg",
-                    format!("{:#x} (lv2 pte addr):", pte_addr_3.get())
-                }
-
-                form {
-                    onsubmit: |_| {},
-                    input {
-                        class: "bg-gray-900",
-                        oninput: move |event|
-                        if let Some(hex_noprefix) = event.value.strip_prefix("0x") {
-                            if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
-                                pte_3.set(hex);
-                                trans_state.with_mut(|t| {
-                                    t.set_ppn(hex);
-                                    t.enable_flags(0, hex);
-                                });
-                                trans_state.with_mut(|t| t.set_result_flag(true));
-                            }
-                        } else if let Ok(dec) = event.value.parse::<u64>() {
-                            pte_3.set(dec);
-                            trans_state.with_mut(|t| {
-                                t.set_ppn(dec);
-                                t.enable_flags(0, dec);
-                            });
-                            trans_state.with_mut(|t| t.set_result_flag(true));
-                        }
-                    }
-                }
-            }
-
-            pte::bit_field(cx, pte_2)
-            pte::pte_data(cx, pte_2)
+            pte::bit_field(cx, 1, trans_state)
+            pte::pte_data(cx, 1, trans_state)
         }
     })
 }
@@ -296,11 +213,6 @@ fn show_paddr<'a>(cx: Scope<'a>, trans_state: &'a UseState<TranslateState>) -> E
 pub fn visualizer(cx: Scope) -> Element {
     let conf = use_shared_state::<Config>(cx).unwrap();
     let trans_state = use_state(cx, TranslateState::new);
-    let pte_addr_1 = use_state(cx, || 0);
-    let pte_1 = use_state(cx, || 0);
-    let pte_addr_2 = use_state(cx, || 0);
-    let pte_2 = use_state(cx, || 0);
-    let pte_addr_3 = use_state(cx, || 0);
 
     cx.render(rsx! {
         div {
@@ -321,12 +233,12 @@ pub fn visualizer(cx: Scope) -> Element {
                             if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
                                 trans_state.with_mut(|t| t.set_vaddr(hex));
                                 trans_state.with_mut(|t| t.set_vpn(hex));
-                                pte_addr_1.set(conf.read().satp_ppn * 4096 + trans_state.get().vpn(2) * 8);
+                                trans_state.with_mut(|t| t.set_pte_addr(1, conf.read().satp_ppn * 4096 + trans_state.get().vpn(2) * 8));
                             }
                         } else if let Ok(dec) = event.value.parse::<u64>() {
                             trans_state.with_mut(|t| t.set_vaddr(dec));
                             trans_state.with_mut(|t| t.set_vpn(dec));
-                            pte_addr_1.set(conf.read().satp_ppn * 4096 + trans_state.get().vpn(2) * 8);
+                            trans_state.with_mut(|t| t.set_pte_addr(1, conf.read().satp_ppn * 4096 + trans_state.get().vpn(2) * 8));
                         }
                     }
                 }
@@ -337,16 +249,18 @@ pub fn visualizer(cx: Scope) -> Element {
         }
 
         if trans_state.get().flags(2) {
-            trans_lv1(cx, pte_addr_1, pte_1, pte_addr_2, trans_state)
+            trans_lv1(cx, trans_state)
         }
 
+        /*
         if trans_state.get().flags(1) {
-            trans_lv2(cx, pte_1, pte_addr_2, pte_2, pte_addr_3, trans_state)
+            trans_lv2(cx, trans_state)
         }
 
         if trans_state.get().flags(0) {
-            trans_lv3(cx, pte_2, pte_addr_3, trans_state)
+            trans_lv3(cx, trans_state)
         }
+        */
 
         if trans_state.get().result_flag() {
             show_paddr(cx, trans_state)
