@@ -24,7 +24,7 @@ struct TranslateState {
     /// Current level.
     /// None -> has not tranlated yet.
     /// Some(x) -> level x (0~2).
-    current_level: Option<usize>,
+    current_level: usize,
 
     /// Showing result flag.
     showing_result_flag: bool,
@@ -38,7 +38,7 @@ impl TranslateState {
             vpn: [0, 0, 0],
             pte_lv: [0, 0, 0],
             pte_addr_lv: [0, 0, 0],
-            current_level: None,
+            current_level: 1,
             showing_result_flag: false,
         }
     }
@@ -91,7 +91,7 @@ impl TranslateState {
 
     /// Return PPN value according to index.
     pub fn ppn(&self, index: usize) -> u64 {
-        let pte = self.pte_lv[self.current_level.unwrap_or(0)];
+        let pte = self.pte_lv[self.current_level];
         match index {
             0 => pte >> 10 & 0x1ff,
             1 => pte >> 19 & 0x1ff,
@@ -104,7 +104,7 @@ impl TranslateState {
     /// Level's range is 1~3 (convert to 0~2).
     pub fn update_level(&mut self, level: usize, pte: u64) {
         if pte >> 1 & 0x1 == 0 && pte >> 3 & 0x1 == 0 {
-            self.current_level = Some(level); // level = level - 1 + 1;
+            self.current_level = level + 1;
         }
         self.showing_result_flag = pte >> 1 & 0x1 == 1 || pte >> 3 & 0x1 == 1;
     }
@@ -116,7 +116,7 @@ impl TranslateState {
 
     /// Get current tranlate level (0 ~ 2).
     pub fn get_level(&self) -> usize {
-        self.current_level.unwrap_or(0)
+        self.current_level
     }
 }
 
@@ -138,7 +138,7 @@ fn trans_each_level<'a>(
                 class: "flex space-x-3 py-2",
                 p {
                     class: "float-left text-lg",
-                    format!("{:#x} (lv1 pte addr):", trans_state.get_pte_addr(level))
+                    format!("{:#x} (lv{level} pte addr):", trans_state.get_pte_addr(level))
                 }
 
                 form {
@@ -169,8 +169,8 @@ fn trans_each_level<'a>(
                 }
             }
 
-            pte::bit_field(cx, 1, trans_state)
-            pte::pte_data(cx, 1, trans_state)
+            pte::bit_field(cx, level, trans_state)
+            pte::pte_data(cx, level, trans_state)
         }
     })
 }
@@ -252,11 +252,13 @@ pub fn visualizer(cx: Scope) -> Element {
             vaddr::bit_data(cx, trans_state)
         }
 
-        if trans_state.get().current_level.is_some() {
-            for level in 1..=MAX_LEVEL {
-                if level <= trans_state.get_level() {
-                    trans_each_level(cx, level, trans_state);
-                }
+        p {
+            format!("current level: {}", trans_state.get_level())
+        }
+
+        for level in 1..=MAX_LEVEL {
+            if level <= trans_state.get_level() {
+                trans_each_level(cx, level, trans_state)
             }
         }
 
