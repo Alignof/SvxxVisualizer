@@ -99,9 +99,10 @@ impl TranslateState {
     }
 
     /// Enable display flags according to pte value.
-    pub fn enable_flags(&mut self, index: usize, pte: u64) {
+    /// Level's range is 1~3 (convert to 0~2).
+    pub fn update_level(&mut self, level: usize, pte: u64) {
         if pte >> 1 & 0x1 == 0 && pte >> 3 & 0x1 == 0 {
-            self.current_level = Some(index + 1);
+            self.current_level = Some(level); // level = level - 1 + 1;
         }
         self.showing_result_flag = pte >> 1 & 0x1 == 1 || pte >> 3 & 0x1 == 1;
     }
@@ -143,14 +144,14 @@ fn trans_lv1<'a>(cx: Scope<'a>, trans_state: &'a UseState<TranslateState>) -> El
                             if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
                                 trans_state.with_mut(|t| {
                                     t.set_pte(1, hex);
-                                    t.enable_flags(1, hex);
+                                    t.update_level(1, hex);
                                     t.set_pte_addr(2, ppn * 4096 + trans_state.get().vpn(1) * 8);
                                 });
                             }
                         } else if let Ok(dec) = event.value.parse::<u64>() {
                             trans_state.with_mut(|t| {
                                 t.set_pte(1, dec);
-                                t.enable_flags(1, dec);
+                                t.update_level(1, dec);
                                 t.set_pte_addr(2, ppn * 4096 + trans_state.get().vpn(1) * 8);
                             });
                         }
