@@ -126,13 +126,17 @@ fn trans_each_level<'a>(
     trans_state: &'a UseState<TranslateState>,
 ) -> Element<'a> {
     let conf = use_shared_state::<Config>(cx).unwrap();
-    let ppn =
-        trans_state.get().ppn(2) << 18 | trans_state.get().ppn(1) << 9 | trans_state.get().ppn(0);
+    let ppn = if level == 1 {
+        conf.read().satp_ppn
+    } else {
+        trans_state.get().ppn(2) << 18 | trans_state.get().ppn(1) << 9 | trans_state.get().ppn(0)
+    };
+
     cx.render(rsx! {
         div {
             class: "mx-auto p-8 flex flex-col justify-start",
 
-            pte::pte_addr(cx, conf.read().satp_ppn, trans_state.get().vpn(MAX_LEVEL - level))
+            pte::pte_addr(cx, ppn, trans_state.get().vpn(MAX_LEVEL - level))
 
             div {
                 class: "flex space-x-3 py-2",
