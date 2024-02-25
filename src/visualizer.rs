@@ -4,15 +4,21 @@ use dioxus::prelude::*;
 mod pte;
 mod vaddr;
 
+/// Global state
 #[derive(Clone)]
 struct TranslateState {
+    /// Virtual page number.
     vpn: [u32; 3],
+    /// Physical page number.
     ppn: [u32; 3],
+    /// Showing each translate level flag.
     level_flags: [bool; 3],
+    /// Showing result flag.
     result_flag: bool,
 }
 
 impl TranslateState {
+    /// Constructor.
     pub fn new() -> Self {
         TranslateState {
             vpn: [0, 0, 0],
@@ -22,43 +28,52 @@ impl TranslateState {
         }
     }
 
+    /// Set VPN from the vpn_value.
     pub fn set_vpn(&mut self, vpn_value: u64) {
         self.vpn[0] = (vpn_value >> 12 & 0x1ff) as u32;
         self.vpn[1] = (vpn_value >> 21 & 0x1ff) as u32;
         self.vpn[2] = (vpn_value >> 30 & 0x1ff) as u32;
     }
 
+    /// Return VPN value according to index.
     pub fn vpn(&self, index: usize) -> u64 {
         u64::from(self.vpn[index])
     }
 
+    /// Set PPN from the ppn_value.
     pub fn set_ppn(&mut self, ppn_value: u64) {
         self.ppn[0] = (ppn_value >> 10 & 0x1ff) as u32;
         self.ppn[1] = (ppn_value >> 19 & 0x1ff) as u32;
         self.ppn[2] = (ppn_value >> 28 & 0x03ff_ffff) as u32;
     }
 
+    /// Return PPN value according to index.
     pub fn ppn(&self, index: usize) -> u64 {
         u64::from(self.ppn[index])
     }
 
+    /// Enable display flags according to pte value.
     pub fn enable_flags(&mut self, index: usize, pte: u64) {
         self.level_flags[index] = pte >> 1 & 0x1 == 0 && pte >> 3 & 0x1 == 0;
         self.result_flag = pte >> 1 & 0x1 == 1 || pte >> 3 & 0x1 == 1;
     }
 
+    /// Return level_flags.
     pub fn flags(&self, index: usize) -> bool {
         self.level_flags[index]
     }
 
+    /// Set result_flag.
     pub fn set_result_flag(&mut self, new_val: bool) {
         self.result_flag = new_val;
     }
 
+    /// Return result_flag.
     pub fn result_flag(&self) -> bool {
         self.result_flag
     }
 
+    /// Get current tranlate level (0 ~ 2).
     pub fn get_level(&self) -> usize {
         self.level_flags.iter().position(|x| *x).unwrap()
     }
@@ -268,6 +283,7 @@ fn show_paddr<'a>(
     })
 }
 
+/// Show address translation visualizer.
 pub fn visualizer(cx: Scope) -> Element {
     let conf = use_shared_state::<Config>(cx).unwrap();
     let vaddr = use_state(cx, || 0);
