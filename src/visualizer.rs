@@ -58,7 +58,7 @@ impl TranslateState {
         self.vaddr
     }
 
-    /// Set VPN from the vpn_value.
+    /// Set VPN from the `vpn_value`.
     pub fn set_vpn(&mut self, vpn_value: u64) {
         self.vpn[0] = (vpn_value >> 12 & 0x1ff) as u32;
         self.vpn[1] = (vpn_value >> 21 & 0x1ff) as u32;
@@ -111,7 +111,7 @@ impl TranslateState {
         self.showing_result_flag = pte >> 1 & 0x1 == 1 || pte >> 3 & 0x1 == 1;
     }
 
-    /// Return showing_result_flag.
+    /// Return `showing_result_flag`.
     pub fn result_flag(&self) -> bool {
         self.showing_result_flag
     }
