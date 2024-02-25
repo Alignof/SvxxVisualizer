@@ -1,4 +1,4 @@
-use crate::visualizer::TranslateState;
+use crate::visualizer::{TranslateState, PAGE_SIZE};
 use dioxus::prelude::*;
 
 enum PteField {
@@ -151,16 +151,16 @@ pub fn pte_data<'a>(
     })
 }
 
-pub fn pte_addr(cx: Scope, satp_ppn: u64, vpn: u64) -> Element {
+pub fn pte_addr(cx: Scope, ppn: u64, pte_vpn: u64) -> Element {
     cx.render(rsx! {
         div {
             p {
                 class: "float-left text-xl",
                 format!(
                     "pte addr = {:#x} × {:#x} + {:#x} × {:#x}",
-                    satp_ppn,
-                    4096,
-                    vpn,
+                    ppn,
+                    PAGE_SIZE,
+                    pte_vpn,
                     8
                 )
             }

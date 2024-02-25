@@ -5,6 +5,7 @@ mod pte;
 mod vaddr;
 
 const MAX_LEVEL: usize = 3;
+const PAGE_SIZE: u64 = 4096;
 
 /// Global state
 #[derive(Clone)]
@@ -130,7 +131,7 @@ fn trans_each_level<'a>(
     let ppn = if level == 1 {
         conf.read().satp_ppn
     } else {
-        trans_state.get().ppn(2) << 18 | trans_state.get().ppn(1) << 9 | trans_state.get().ppn(0)
+        (trans_state.get_pte(level - 1) >> 10) & 0xfff_ffff_ffff
     };
 
     cx.render(rsx! {
@@ -157,7 +158,8 @@ fn trans_each_level<'a>(
                                     t.set_pte(level, hex);
                                     t.update_level(level, hex);
                                     if level < MAX_LEVEL {
-                                        t.set_pte_addr(level + 1, ppn * 4096 + trans_state.get().vpn(MAX_LEVEL - 1 - level) * 8);
+                                        let next_ppn = (hex >> 10) & 0xfff_ffff_ffff;
+                                        t.set_pte_addr(level + 1, next_ppn * 4096 + trans_state.get().vpn(MAX_LEVEL - 1 - level) * 8);
                                     }
                                 });
                             }
@@ -166,7 +168,8 @@ fn trans_each_level<'a>(
                                 t.set_pte(level, dec);
                                 t.update_level(level, dec);
                                 if level < MAX_LEVEL {
-                                    t.set_pte_addr(level + 1, ppn * 4096 + trans_state.get().vpn(MAX_LEVEL - 1 - level) * 8);
+                                    let next_ppn = (dec >> 10) & 0xfff_ffff_ffff;
+                                    t.set_pte_addr(level + 1, next_ppn * 4096 + trans_state.get().vpn(MAX_LEVEL - 1 - level) * 8);
                                 }
                             });
                         }
