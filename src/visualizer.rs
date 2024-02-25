@@ -20,7 +20,7 @@ struct TranslateState {
     /// Showing each translate level flag.
     level_flags: [bool; 3],
     /// Showing result flag.
-    result_flag: bool,
+    showing_result_flag: bool,
 }
 
 impl TranslateState {
@@ -33,7 +33,7 @@ impl TranslateState {
             pte_addr_lv: [0, 0, 0],
             ppn: [0, 0, 0],
             level_flags: [false, false, true],
-            result_flag: false,
+            showing_result_flag: false,
         }
     }
 
@@ -98,7 +98,7 @@ impl TranslateState {
     /// Enable display flags according to pte value.
     pub fn enable_flags(&mut self, index: usize, pte: u64) {
         self.level_flags[index] = pte >> 1 & 0x1 == 0 && pte >> 3 & 0x1 == 0;
-        self.result_flag = pte >> 1 & 0x1 == 1 || pte >> 3 & 0x1 == 1;
+        self.showing_result_flag = pte >> 1 & 0x1 == 1 || pte >> 3 & 0x1 == 1;
     }
 
     /// Return level_flags.
@@ -106,14 +106,9 @@ impl TranslateState {
         self.level_flags[index]
     }
 
-    /// Set result_flag.
-    pub fn set_result_flag(&mut self, new_val: bool) {
-        self.result_flag = new_val;
-    }
-
-    /// Return result_flag.
+    /// Return showing_result_flag.
     pub fn result_flag(&self) -> bool {
-        self.result_flag
+        self.showing_result_flag
     }
 
     /// Get current tranlate level (0 ~ 2).
