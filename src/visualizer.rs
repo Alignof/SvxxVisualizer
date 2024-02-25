@@ -75,8 +75,11 @@ impl TranslateState {
 
     /// Set PTE according to level.
     /// Level's range is 1~3 (convert to 0~2).
-    pub fn set_pte(&mut self, level: usize, pte: u64) {
-        self.pte_lv[level - 1] = pte;
+    pub fn set_pte(&mut self, level: usize, pte_value: u64) {
+        self.pte_lv[level - 1] = pte_value;
+        self.ppn[0] = (pte_value >> 10 & 0x1ff) as u32;
+        self.ppn[1] = (pte_value >> 19 & 0x1ff) as u32;
+        self.ppn[2] = (pte_value >> 28 & 0x03ff_ffff) as u32;
     }
 
     /// Get PTE address according to level.
@@ -89,13 +92,6 @@ impl TranslateState {
     /// Level's range is 1~3 (convert to 0~2).
     pub fn set_pte_addr(&mut self, level: usize, pte_addr: u64) {
         self.pte_addr_lv[level - 1] = pte_addr;
-    }
-
-    /// Set PPN from the ppn_value.
-    pub fn set_ppn(&mut self, ppn_value: u64) {
-        self.ppn[0] = (ppn_value >> 10 & 0x1ff) as u32;
-        self.ppn[1] = (ppn_value >> 19 & 0x1ff) as u32;
-        self.ppn[2] = (ppn_value >> 28 & 0x03ff_ffff) as u32;
     }
 
     /// Return PPN value according to index.
@@ -148,7 +144,6 @@ fn trans_lv1<'a>(cx: Scope<'a>, trans_state: &'a UseState<TranslateState>) -> El
                             if let Ok(hex) = u64::from_str_radix(hex_noprefix, 16) {
                                 trans_state.with_mut(|t| {
                                     t.set_pte(1, hex);
-                                    t.set_ppn(hex);
                                     t.enable_flags(1, hex);
                                     t.set_pte_addr(2, ppn * 4096 + trans_state.get().vpn(1) * 8);
                                 });
@@ -156,7 +151,6 @@ fn trans_lv1<'a>(cx: Scope<'a>, trans_state: &'a UseState<TranslateState>) -> El
                         } else if let Ok(dec) = event.value.parse::<u64>() {
                             trans_state.with_mut(|t| {
                                 t.set_pte(1, dec);
-                                t.set_ppn(dec);
                                 t.enable_flags(1, dec);
                                 t.set_pte_addr(2, ppn * 4096 + trans_state.get().vpn(1) * 8);
                             });
