@@ -1,3 +1,4 @@
+use crate::visualizer::TranslateState;
 use dioxus::prelude::*;
 
 enum VaddrField {
@@ -49,8 +50,8 @@ fn bit_box<'a>(cx: Scope<'a>, bit: u8, color_map: &[VaddrField]) -> Element<'a> 
     })
 }
 
-pub fn bit_field<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
-    let vaddr_bytes = vaddr.get().to_le_bytes();
+pub fn bit_field<'a>(cx: Scope<'a>, trans_state: &'a UseState<TranslateState>) -> Element<'a> {
+    let vaddr_bytes = trans_state.get_vaddr().to_be_bytes();
     let boxes = vaddr_bytes
         .iter()
         .rev()
@@ -75,7 +76,7 @@ pub fn bit_field<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
     })
 }
 
-pub fn bit_data<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
+pub fn bit_data<'a>(cx: Scope<'a>, trans_state: &'a UseState<TranslateState>) -> Element<'a> {
     cx.render(rsx! {
         div {
             class: "py-1 flex text-xl text-yellow-500 font-mono",
@@ -84,7 +85,7 @@ pub fn bit_data<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
             }
             div {
                 class: "pl-2 text-white",
-                format!("{:#03x}", vaddr.get() >> 30 & 0x1ff)
+                format!("{:#03x}", trans_state.get_vaddr() >> 30 & 0x1ff)
             }
         }
         div {
@@ -94,7 +95,7 @@ pub fn bit_data<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
             }
             div {
                 class: "pl-2 text-white",
-                format!("{:#03x}", vaddr.get() >> 21 & 0x1ff)
+                format!("{:#03x}", trans_state.get_vaddr() >> 21 & 0x1ff)
             }
         }
         div {
@@ -104,7 +105,7 @@ pub fn bit_data<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
             }
             div {
                 class: "pl-2 text-white",
-                format!("{:#03x}", vaddr.get() >> 12 & 0x1ff)
+                format!("{:#03x}", trans_state.get_vaddr() >> 12 & 0x1ff)
             }
         }
         div {
@@ -114,7 +115,7 @@ pub fn bit_data<'a>(cx: Scope<'a>, vaddr: &'a UseState<u64>) -> Element<'a> {
             }
             div {
                 class: "pl-2 text-white",
-                format!("{:#03x}", vaddr.get() & 0xfff)
+                format!("{:#03x}", trans_state.get_vaddr() & 0xfff)
             }
         }
     })

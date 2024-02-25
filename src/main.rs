@@ -9,7 +9,7 @@ fn main() {
     dioxus_web::launch(app);
 }
 
-// create a component that renders a div with the text "Hello, world!"
+/// create a root component that renders a page.
 fn app(cx: Scope) -> Element {
     use_shared_state_provider(cx, Config::new);
     cx.render(rsx! {
