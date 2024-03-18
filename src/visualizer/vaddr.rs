@@ -51,7 +51,7 @@ fn bit_box<'a>(cx: Scope<'a>, bit: u8, color_map: &[VaddrField]) -> Element<'a> 
 }
 
 pub fn bit_field<'a>(cx: Scope<'a>, trans_state: &'a UseState<TranslateState>) -> Element<'a> {
-    let vaddr_bytes = trans_state.get_vaddr().to_be_bytes();
+    let vaddr_bytes = trans_state.get_vaddr().to_le_bytes();
     let boxes = vaddr_bytes
         .iter()
         .rev()
