@@ -8,13 +8,13 @@ enum PteField {
     Ppn1,
     Ppn2,
     Resv,
-    PBMT,
+    Pbmt,
     N,
 }
 
-use PteField::{Flags, Ppn0, Ppn1, Ppn2, Resv, Rsw, N, PBMT};
+use PteField::{Flags, Pbmt, Ppn0, Ppn1, Ppn2, Resv, Rsw, N};
 const PTE_COLOR_MAP: [[PteField; 8]; 8] = [
-    [N, PBMT, Resv, Resv, Resv, Resv, Resv, Resv],
+    [N, Pbmt, Resv, Resv, Resv, Resv, Resv, Resv],
     [Resv, Resv, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2],
     [Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2],
     [Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2, Ppn2],
@@ -39,7 +39,7 @@ fn bit_box<'a>(cx: Scope<'a>, bit: u8, color_map: &[PteField]) -> Element<'a> {
                                 Ppn0 => "text-green-500",
                                 Ppn1 => "text-blue-300",
                                 Ppn2 => "text-yellow-500",
-                                Resv | PBMT | N => "text-white-500",
+                                Resv | Pbmt | N => "text-white-500",
                             },
                             format!("{:01b}", bit >> (3 - i) & 1),
                         }
