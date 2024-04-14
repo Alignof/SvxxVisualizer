@@ -84,6 +84,7 @@ pub fn bit_field<'a>(
     })
 }
 
+#[allow(clippy::module_name_repetitions)]
 pub fn pte_data<'a>(
     cx: Scope<'a>,
     level: usize,
@@ -151,6 +152,7 @@ pub fn pte_data<'a>(
     })
 }
 
+#[allow(clippy::module_name_repetitions)]
 pub fn pte_addr(cx: Scope, ppn: u64, pte_vpn: u64) -> Element {
     cx.render(rsx! {
         div {

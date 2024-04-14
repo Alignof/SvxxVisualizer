@@ -198,21 +198,17 @@ fn show_paddr<'a>(cx: Scope<'a>, trans_state: &'a UseState<TranslateState>) -> E
                 }
                 p {
                     match level {
-                        1 => format!("→ paddr: {:#x}", trans.ppn(2) << 30 | trans.vpn(1) << 21 | trans.vpn(0) << 12 | page_off),
-                        2 => {
-                            if trans.ppn(0) != 0 {
-                                "trans.ppn(0) != 0".to_string()
-                            } else {
-                                format!("→ paddr: {:#x}", trans.ppn(2) << 30 | trans.ppn(1) << 21 | trans.vpn(0) << 12 | page_off)
-                            }
-                        }
-                        3 => {
-                            if trans.ppn(0) != 0 || trans.ppn(1) != 0 {
-                                "trans.ppn(0) != 0 || trans.ppn(1) != 0".to_string()
-                            } else {
-                                format!("→ paddr: {:#x}", trans.ppn(2) << 30 | trans.ppn(1) << 21 | trans.ppn(0) << 12 | page_off)
-                            }
-                        }
+                        1 => if trans.ppn(0) != 0 || trans.ppn(1) != 0 {
+                            "trans.ppn(0) != 0 || trans.ppn(1) != 0".to_string()
+                        } else {
+                            format!("→ paddr: {:#x}", trans.ppn(2) << 30 | trans.vpn(1) << 21 | trans.vpn(0) << 12 | page_off)
+                        },
+                        2 => if trans.ppn(0) != 0 {
+                            "trans.ppn(0) != 0".to_string()
+                        } else {
+                            format!("→ paddr: {:#x}", trans.ppn(2) << 30 | trans.ppn(1) << 21 | trans.vpn(0) << 12 | page_off)
+                        },
+                        3 => format!("→ paddr: {:#x}", trans.ppn(2) << 30 | trans.ppn(1) << 21 | trans.ppn(0) << 12 | page_off),
                         _ => String::new()
                     }
                 }
